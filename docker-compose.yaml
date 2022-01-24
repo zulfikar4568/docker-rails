@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  postgres_db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    env_file:
+      - ./env/postgres.env
+  
+  rails_web:
+    build:
+      context: .
+      dockerfile: dockerfiles/ruby.dockerfile
+    volumes:
+      - ./src:/usr/src/app
+      - ./src/bundle:/usr/local/bundle
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres_db
+
+  rails_util:
+    build:
+      context: .
+      dockerfile: dockerfiles/rubyutil.dockerfile
+    volumes:
+      - ./src:/usr/src/app
+
+volumes:
+  pg_data:
