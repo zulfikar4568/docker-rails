@@ -9,7 +9,7 @@ services:
       - pg_data:/var/lib/postgresql/data
     env_file:
       - ./env/postgres.env
-  
+
   redis:
     image: redis
     volumes:
@@ -42,3 +42,8 @@ volumes:
   pg_data:
   redis_data:
   bundle:
+
+networks:
+  default:
+    name: rails_web_network
+    driver: bridge

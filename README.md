@@ -49,5 +49,38 @@ sudo chmod -R 777 ./src
 
 ## Try generate Articles using Utility Rails
 ```
-docker-compose run --rm rails_util rails generate controller Articles controller index --skip-routes
+docker-compose run --rm rails_util rails generate migration create_articles
 ```
+
+## Create alias for Utility rails_util on bashrc `ror` 
+Using `docker-compose run --rm rails_util`  probably will hard when doing development since the command too long, instead doing that better we create alias on `.bashrc` file.
+```bash
+sudo nano ~/.bashrc
+```
+add command below
+```
+alias rm='docker-compose run --rm rails_util'
+```
+exit and type
+```bash
+source ~/.bashrc
+```
+Notes: Using alias **Make sure you have already on docker-rails project folder**
+
+We can generate something only use `ror` instead `docker-compose run --rm rails_util`, for example
+```bash
+ror rails new .
+#instead doing this
+docker-compose run --rm rails_util rails new .
+```
+
+## Interact with rails console
+```bash
+ror rails c
+# or
+docker exec -it rails_web /bin/bash
+# type irb on bash rails_web
+irb
+```
+
+## Create simple app using [rails](./SimpleApp.md)
