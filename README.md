@@ -46,3 +46,8 @@ ERROR: Service 'rails_web' failed to build : Build failed`. This problem facing 
 ```
 sudo chmod -R 777 ./src
 ```
+
+## Try generate Articles using Utility Rails
+```
+docker-compose run --rm rails_util rails generate controller Articles controller index --skip-routes
+```

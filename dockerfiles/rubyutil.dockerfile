@@ -13,3 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /usr/src/app
 
 RUN gem install rails
+
+COPY ./entrypoint.sh /usr/src/entrypoint/
+
+RUN chmod +x /usr/src/entrypoint/entrypoint.sh
+
+ENTRYPOINT ["/usr/src/entrypoint/entrypoint.sh"]

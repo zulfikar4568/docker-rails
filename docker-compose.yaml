@@ -1,6 +1,7 @@
 version: '3.8'
 services:
   postgres_db:
+    container_name: postgres_db
     image: postgres
     ports:
       - "5432:5432"
@@ -9,19 +10,28 @@ services:
     env_file:
       - ./env/postgres.env
   
+  redis:
+    image: redis
+    volumes:
+      - redis_data:/data
+  
   rails_web:
+    container_name: rails_web
     build:
       context: .
       dockerfile: dockerfiles/ruby.dockerfile
     volumes:
       - ./src:/usr/src/app
-      - ./src/bundle:/usr/local/bundle
+      - bundle:/usr/local/bundle
     ports:
       - "3000:3000"
+    environment:
+      - HISTFILE=/usr/src/app/log/.bash_history 
     depends_on:
       - postgres_db
 
   rails_util:
+    container_name: rails_util
     build:
       context: .
       dockerfile: dockerfiles/rubyutil.dockerfile
@@ -30,3 +40,5 @@ services:
 
 volumes:
   pg_data:
+  redis_data:
+  bundle:
