@@ -16,6 +16,8 @@ services:
       - redis_data:/data
   
   rails_web:
+    stdin_open: true
+    tty: true
     container_name: rails_web
     build:
       context: .
