@@ -33,6 +33,7 @@ After we execute above command we will see the our Rails files in `src` folder
 > Using this command when we will an updated the images
 ```bash
 docker-compose up -d --build rails_web
+docker attach rails_web #for interact with your server
 ```
 > Otherwise we can use this command, that will not updated a images
 ```bash

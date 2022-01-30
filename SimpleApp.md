@@ -112,19 +112,20 @@ article.errors.full_messages
 ```
 
 ## Frontend
-### Routes
+
+
+### View **show**
+Edit the `routes.rb`
 ```ruby
 Rails.application.routes.draw do
-  resources :articles
+  resources :articles, only: [:show]
 end
 ```
-Entering docker rails_web
+Entering docker rails_web (**optional**)
 ```bash
 docker exec -it rails_web /bin/bash
 rails routes --expanded
 ```
-
-### Controllers
 Create Controller file `articles_controller.rb` in `/app/controllers`
 ```ruby
 class ArticlesController < ApplicationController
@@ -133,16 +134,126 @@ class ArticlesController < ApplicationController
   end
 end
 ```
-
-### View
 Create folder `articles` in `/app/views` and create file `show.html.erb` in `/app/views/articles`
 ```erb
 <h1> Showing articles details </h1>
 <p><strong>Title: </strong><%=@article.title%></p>
 <p><strong>Description: </strong><%=@article.description%></p>
 ```
-
 and Access the url `http://localhost:3000/articles/1`
+
+### View **index**
+Edit `routes.rb`
+```ruby
+Rails.application.routes.draw do
+  resources :articles, only: [:show, :index]
+end
+```
+
+Add index in `articles_controller.rb`
+```ruby
+class ArticlesController < ApplicationController
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def index
+    @articles = Article.all
+  end
+
+end
+```
+
+Create folder `articles` in `/app/views` and create file `index.html.erb` in `/app/views/articles`
+```erb
+<h1>Article list pages</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Description</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @articles.each do |article| %>
+      <tr>
+        <td><%= article.title%></td>
+        <td><%= article.description%></td>
+        <td>Some action</td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+```
+and Access the url `http://localhost:3000/articles`
+
+### View **new**
+Edit `routes.rb`
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+  resources :articles, only: [:show, :index, :new, :create]
+end
+```
+
+Add index in `articles_controller.rb`
+```ruby
+class ArticlesController < ApplicationController
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def index
+    @articles = Article.all
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def create
+    @article = Article.new(article_params)
+
+    if @article.save
+      redirect_to @article
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :description)
+    end
+end
+```
+
+Create folder `articles` in `/app/views` and create file `new.html.erb` in `/app/views/articles`
+```erb
+<h1>Create a new Article</h1>
+
+<%= form_with model: @article do |f|%>
+  <p>
+    <%= f.label :title%></br>
+    <%= f.text_field :title%>
+  </p>
+
+  <p>
+    <%= f.label :description%></br>
+    <%= f.text_area :description%>
+  </p>
+
+  <p>
+    <%= f.submit%>
+  </p>
+<%end%>
+```
+and Access the url `http://localhost:3000/articles/new`
 ## Debugging Rails using debugger
 Add byebug in code, byebug will pause our rails app
 ```ruby
@@ -152,3 +263,14 @@ class ArticlesController < ApplicationController
     @article = Article.find(params[:id])
   end
 end
+```
+Interact with our rails application
+```bash
+docker attach rails_web
+```
+Check the `params`
+```
+params
+params[:id]
+continue
+```
