@@ -546,3 +546,133 @@ params
 params[:id]
 continue
 ```
+
+## DRY (Don't repear yourself) - Refactoring and Partials
+Edit `articles_controller.rb`
+```ruby
+class ArticlesController < ApplicationController
+  before_action :set_article, only: [:edit, :update, :show, :destory]
+
+  def show
+  end
+
+  def index
+    @articles = Article.all
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def edit
+  end
+
+  def update
+    @article.update(article_params)
+
+    if @article.save
+      flash[:notice] = "Article was updated successfully."
+      redirect_to @article
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @article.destroy
+    redirect_to root_path, status: :see_other
+  end
+
+  def create
+    @article = Article.new(article_params)
+
+    if @article.save
+      flash[:notice] = "Article was created successfully."
+      redirect_to @article
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :description)
+    end
+
+    def set_article
+      @article = Article.find(params[:id])
+    end
+end
+```
+
+Add file `_messages.html.erb` in `app/views/layouts`
+```erb
+<% flash.each do |name, msg| %>
+  <%= msg%>
+<% end %>
+```
+Edit file `application.html.erb` in `app/views/layouts`
+```erb
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>App</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <%= render 'layouts/messages' %>
+    <%= yield %>
+  </body>
+</html>
+
+```
+Add file `_form.html.erb` in `app/views/articles`
+```erb
+<% if @article.errors.any?%>
+  <h2>The Following errors prevented the article being saved</h2>
+  <ul>
+    <% @article.errors.full_messages.each do |msg|%>
+      <li><%= msg%></li>
+    <%end%>
+  </ul>
+<%end%>
+
+<%= form_with model: @article do |f|%>
+  <p>
+    <%= f.label :title%></br>
+    <%= f.text_field :title%>
+  </p>
+
+  <p>
+    <%= f.label :description%></br>
+    <%= f.text_area :description%>
+  </p>
+
+  <p>
+    <%= f.submit%>
+  </p>
+<%end%>
+```
+Edit file `edit.html.erb` in `app/views/articles`
+```erb
+<h1>Edit Article</h1>
+
+<%= render 'form'%>
+
+<%= link_to 'Cancel Return to a listing article', articles_path%>
+
+```
+Edit file `new.html.erb` in `app/views/articles`
+```erb
+<h1>Create a new Article</h1>
+
+<%= render 'form'%>
+
+<%= link_to 'Return to a listing article', articles_path%>
+```
