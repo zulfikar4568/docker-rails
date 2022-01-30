@@ -200,7 +200,7 @@ Rails.application.routes.draw do
 end
 ```
 
-Add index in `articles_controller.rb`
+Edit `articles_controller.rb`
 ```ruby
 class ArticlesController < ApplicationController
 
@@ -255,8 +255,8 @@ Create folder `articles` in `/app/views` and create file `new.html.erb` in `/app
 ```
 and Access the url `http://localhost:3000/articles/new`
 
-### View **flash ad validation**
-Add index in `articles_controller.rb`
+### View **flash and validation**
+Edit `articles_controller.rb`
 ```ruby
 class ArticlesController < ApplicationController
 
@@ -290,7 +290,7 @@ class ArticlesController < ApplicationController
 end
 ```
 
-Create folder `articles` in `/app/views` and create file `new.html.erb` in `/app/views/articles`
+Edit file `new.html.erb` in `/app/views/articles`
 ```erb
 <h1>Create a new Article</h1>
 
@@ -344,6 +344,188 @@ Add flash in `app/views/layouts/application.html.erb`
 
 ```
 and Access the url `http://localhost:3000/articles/new`
+
+### View **update**
+Edit `routes.rb`
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+  resources :articles, only: [:show, :index, :new, :create, :edit, :update]
+end
+```
+
+Edit `articles_controller.rb`
+```ruby
+class ArticlesController < ApplicationController
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def index
+    @articles = Article.all
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def edit
+    @article = Article.find(params[:id])
+  end
+
+  def update
+    @article = Article.find(params[:id])
+    @article.update(article_params)
+
+    if @article.save
+      flash[:notice] = "Article was updated successfully."
+      redirect_to @article
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def create
+    @article = Article.new(article_params)
+
+    if @article.save
+      flash[:notice] = "Article was created successfully."
+      redirect_to @article
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :description)
+    end
+end
+```
+
+Create file `edit.html.erb` in `/app/views/articles`
+```erb
+<h1>Edit Article</h1>
+
+<% if @article.errors.any?%>
+  <h2>The Following errors prevented the article being saved</h2>
+  <ul>
+    <% @article.errors.full_messages.each do |msg|%>
+      <li><%= msg%></li>
+    <%end%>
+  </ul>
+<%end%>
+
+<%= form_with model: @article do |f|%>
+  <p>
+    <%= f.label :title%></br>
+    <%= f.text_field :title%>
+  </p>
+
+  <p>
+    <%= f.label :description%></br>
+    <%= f.text_area :description%>
+  </p>
+
+  <p>
+    <%= f.submit%>
+  </p>
+<%end%>
+```
+and Access the url `http://localhost:3000/articles/1/edit`
+
+### View **delete**
+Edit `routes.rb`
+```ruby
+Rails.application.routes.draw do
+  root "articles#index"
+  resources :articles
+end
+```
+
+Edit `articles_controller.rb`
+```ruby
+class ArticlesController < ApplicationController
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def index
+    @articles = Article.all
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def edit
+    @article = Article.find(params[:id])
+  end
+
+  def update
+    @article = Article.find(params[:id])
+    @article.update(article_params)
+
+    if @article.save
+      flash[:notice] = "Article was updated successfully."
+      redirect_to @article
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @article = Article.find(params[:id])
+    @article.destroy
+    redirect_to root_path, status: :see_other
+  end
+
+  def create
+    @article = Article.new(article_params)
+
+    if @article.save
+      flash[:notice] = "Article was created successfully."
+      redirect_to @article
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :description)
+    end
+end
+```
+
+Edit `index.html.erb` in `/app/views/articles`
+```erb
+<h1>Article list pages</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Description</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @articles.each do |article| %>
+      <tr>
+        <td><%= article.title%></td>
+        <td><%= article.description%></td>
+        <td><%= link_to 'Show', article_path(article)%></td>
+        <td><%= link_to 'Delete', article_path(article), data: { "turbo-method": :delete, turbo_confirm: "Are you sure?" }%></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+```
+and Access the url `http://localhost:3000/articles/1/edit`
 ## Debugging Rails using debugger
 Add debugger in code, debugger will pause our rails app
 ```ruby
