@@ -254,8 +254,98 @@ Create folder `articles` in `/app/views` and create file `new.html.erb` in `/app
 <%end%>
 ```
 and Access the url `http://localhost:3000/articles/new`
+
+### View **flash ad validation**
+Add index in `articles_controller.rb`
+```ruby
+class ArticlesController < ApplicationController
+
+  def show
+    @article = Article.find(params[:id])
+  end
+
+  def index
+    @articles = Article.all
+  end
+
+  def new
+    @article = Article.new
+  end
+
+  def create
+    @article = Article.new(article_params)
+
+    if @article.save
+      flash[:notice] = "Article was created successfully."
+      redirect_to @article
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  private
+    def article_params
+      params.require(:article).permit(:title, :description)
+    end
+end
+```
+
+Create folder `articles` in `/app/views` and create file `new.html.erb` in `/app/views/articles`
+```erb
+<h1>Create a new Article</h1>
+
+<% if @article.errors.any?%>
+  <h2>The Following errors prevented the article being saved</h2>
+  <ul>
+    <% @article.errors.full_messages.each do |msg|%>
+      <li><%= msg%></li>
+    <%end%>
+  </ul>
+<%end%>
+
+<%= form_with model: @article do |f|%>
+  <p>
+    <%= f.label :title%></br>
+    <%= f.text_field :title%>
+  </p>
+
+  <p>
+    <%= f.label :description%></br>
+    <%= f.text_area :description%>
+  </p>
+
+  <p>
+    <%= f.submit%>
+  </p>
+<%end%>
+```
+
+Add flash in `app/views/layouts/application.html.erb`
+```erb
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>App</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <% flash.each do |name, msg| %>
+      <%= msg%>
+    <% end %>
+    <%= yield %>
+  </body>
+</html>
+
+```
+and Access the url `http://localhost:3000/articles/new`
 ## Debugging Rails using debugger
-Add byebug in code, byebug will pause our rails app
+Add debugger in code, debugger will pause our rails app
 ```ruby
 class ArticlesController < ApplicationController
   def show
