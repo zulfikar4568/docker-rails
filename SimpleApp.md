@@ -851,3 +851,104 @@ user
 user.authenticate("wrongpassword")
 user.authenticate("Password123")
 ```
+
+## Add Sign Up page
+Add Folder and file `shared/_errors.html.erb` in `views` folder
+```erb
+<% if obj.errors.any?%>
+  <h2>The Following errors prevented the <%= obj.class.name.downcase%> being saved</h2>
+  <ul>
+    <% obj.errors.full_messages.each do |msg|%>
+      <li><%= msg%></li>
+    <%end%>
+  </ul>
+<%end%>
+
+```
+Edit `articles/_form.html.erb` in `views` folder
+```erb
+<%= render 'shared/errors', obj: @article%>
+<%= form_with(model: @user, local: true) do |f|%>
+  <p>
+    <%= f.label :title%></br>
+    <%= f.text_field :title%>
+  </p>
+
+  <p>
+    <%= f.label :description%></br>
+    <%= f.text_area :description%>
+  </p>
+
+  <p>
+    <%= f.submit%>
+  </p>
+<%end%>
+```
+Add Folder and file `users/_form.html.erb`
+```erb
+<%= render 'shared/errors', obj: @user%>
+<%= form_with(model: @user, local: true) do |f|%>
+  <p>
+    <%= f.label :username%></br>
+    <%= f.text_field :username%>
+  </p>
+
+  <p>
+    <%= f.label :email%></br>
+    <%= f.email_field :email%>
+  </p>
+
+  <p>
+    <%= f.label :password%></br>
+    <%= f.password_field :password%>
+  </p>
+
+  <p>
+    <%= f.submit 'Create User' %>
+  </p>
+<%end%>
+```
+Add File `new.html.erb`
+```erb
+<h1>Sign Up</h1>
+
+<%= render 'form'%>
+
+<%= link_to 'Return to a listing article', articles_path%>
+```
+Edit `routes.rb`
+```ruby
+Rails.application.routes.draw do
+  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+
+  # Defines the root path route ("/")
+  root "articles#index"
+  resources :articles
+  get 'signup', to: 'users#new'
+  resources :users, except: [:new]
+end
+```
+Add file `users_controller.rb` in `controllers` folder
+```ruby
+class UsersController < ApplicationController
+  def new
+    @user = User.new
+  end
+
+  def create
+    @user = User.new(user_params)
+    
+    if @user.save
+      flash[:notice] = "Welcome to the blog #{@user.username}, Account successfully Created"
+      redirect_to articles_path
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  private
+  def user_params
+    params.require(:user).permit(:username, :email, :password)
+  end
+end
+```
