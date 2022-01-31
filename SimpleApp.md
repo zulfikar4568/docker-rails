@@ -736,15 +736,16 @@ ror rails db:migrate
 Edit `user.rb` and `article.rb`
 ```ruby
 class User < ApplicationRecord
+  before_save { self.email = email.downcase }
   has_many :articles
   validates :username, presence: true, 
                         uniqueness: { case_sensitive: false }, 
-                        length: {minimum: 3, maximum: 25}
+                        length: { minimum: 3, maximum: 25}
 
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
   validates :email, presence: true, 
                     uniqueness: { case_sensitive: false }, 
-                    length: {maximum: 105},
+                    length: { maximum: 105 },
                     format: { with: VALID_EMAIL_REGEX }
 end
 
@@ -782,4 +783,71 @@ article.last
 article = Article.new(title: "title article", desciption: "description")
 user_2 = User.last
 user_2.articles << article
+```
+## Add Password field and Securing the Password
+Add bcrypt in Gemfile
+```
+gem "bcrypt", "~> 3.1.7"
+```
+and 
+```
+docker exec -it rails_web /bin/bash
+bundle install
+```
+Add migration file
+```bash
+rails generate migration add_password_digest_to_users
+```
+And add the column inside file migration
+```ruby
+class AddPasswordDigestToUsers < ActiveRecord::Migration[7.0]
+  def change
+    add_column :users, :password_digest, :string
+  end
+end
+```
+Migrating the database
+```bash
+rails db:migrate
+rails c
+```
+Edit the `user.rb` and add `has_secure_password`
+```ruby
+class User < ApplicationRecord
+  before_save { self.email = email.downcase }
+  has_many :articles
+  validates :username, presence: true, 
+                        uniqueness: { case_sensitive: false }, 
+                        length: { minimum: 3, maximum: 25}
+
+  VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
+  validates :email, presence: true, 
+                    uniqueness: { case_sensitive: false }, 
+                    length: { maximum: 105 },
+                    format: { with: VALID_EMAIL_REGEX }
+  has_secure_password
+end
+```
+Test Bcrypt
+```irb
+password = BCrypt::Password.create("password")
+password.salt
+
+# add password into user
+user = User.first
+user.password = "Password123"
+user.save
+user
+=begin
+#<User:0x00007fb295058cd8                                       
+ id: 1,                                                         
+ username: "zulfikar",                                          
+ email: "zulfikar@mail.com",                                  
+ created_at: Mon, 31 Jan 2022 09:16:43.022658000 UTC +00:00,
+ updated_at: Mon, 31 Jan 2022 11:36:46.206112000 UTC +00:00,
+ password_digest: "[FILTERED]">
+=end
+
+user.authenticate("wrongpassword")
+user.authenticate("Password123")
 ```
