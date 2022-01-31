@@ -676,3 +676,110 @@ Edit file `new.html.erb` in `app/views/articles`
 
 <%= link_to 'Return to a listing article', articles_path%>
 ```
+# One to Many Associations
+## Create User Model
+Generating Migration for user
+```
+rails generate migration create_users
+```
+`db/migrate/<migrate_file>.rb` add the username
+```ruby
+class CreateUsers < ActiveRecord::Migration[7.0]
+  def change
+    create_table :users do |t|
+      t.string :username
+      t.string :email
+      t.timestamps
+    end
+  end
+end
+```
+Migrate
+```
+ror rails db:migrate
+```
+
+Create file `user.rb` in `/app/model`
+```ruby
+class User < ApplicationRecord
+  validates :username, presence: true, 
+                        uniqueness: { case_sensitive: false }, 
+                        length: {minimum: 3, maximum: 25}
+
+  VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
+  validates :email, presence: true, 
+                    uniqueness: { case_sensitive: false }, 
+                    length: {maximum: 105},
+                    format: { with: VALID_EMAIL_REGEX }
+end
+```
+You can test REGEX using web `rubular.com`
+
+## Add user association with articles
+Add migration file
+```
+ror rails generate migration add_user_id_to_articles
+```
+
+`db/migrate/<migrate_file>.rb` add the column user_id
+```ruby
+class AddUserIdToArticles < ActiveRecord::Migration[7.0]
+  def change
+    add_column :articles, :user_id, :int
+  end
+end
+```
+Migrate
+```
+ror rails db:migrate
+```
+Edit `user.rb` and `article.rb`
+```ruby
+class User < ApplicationRecord
+  has_many :articles
+  validates :username, presence: true, 
+                        uniqueness: { case_sensitive: false }, 
+                        length: {minimum: 3, maximum: 25}
+
+  VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
+  validates :email, presence: true, 
+                    uniqueness: { case_sensitive: false }, 
+                    length: {maximum: 105},
+                    format: { with: VALID_EMAIL_REGEX }
+end
+
+class Article < ApplicationRecord
+  belongs_to :user
+  validates :title, presence: true, length: {minimum:6, maximum:100}
+  validates :description, presence: true, length: {minimum:10, maximum:300}
+end
+```
+Update all article with First user_id in rails console
+```irb
+Article.update_all(user_id: User.first.id)
+Article.all
+```
+## 3 ways to insert data in one to many using rails console
+Using Rails console
+```bash
+ror rails c
+```
+```irb
+# First Method
+user_1 = User.first
+Article.create(title: "title article", desciption: "description", user_id: user_1.id)
+#or
+Article.create(title: "title article", desciption: "description", user: user_1)
+
+# Second Method
+user_1.articles.build(title: "title article", desciption: "description")
+article = _
+article.save
+article.last
+
+
+# Third Method
+article = Article.new(title: "title article", desciption: "description")
+user_2 = User.last
+user_2.articles << article
+```
